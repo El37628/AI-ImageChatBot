@@ -1,0 +1,11 @@
+#pip install -r requirements.txt (powershell command)
+
+google-cloud-speech
+azure.cognitiveservices.speech
+pyaudio
+openai
+flask
+flask_wtf
+sqlalchemy
+spacy
+psycopg2

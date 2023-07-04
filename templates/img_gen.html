@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>SlyVision</title>
+    <link rel="stylesheet" href="../static/css/img_gen.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="menu-section" id="menu-section" style="display: flex;">
+                <a href="#" class="box-border-button" id="img-gen-button">Generate New Image</a>
+                <span class="history-label">History</span>
+                <a href="#" class="box-border-button" id="features-button">Features</a>
+            </div>            
+        </div>
+
+        <div id="myModal" class="modal">
+            <div class="modal-content">
+                <a href="{{ url_for('slyvision') }}">
+                    <div class="card" id="chatAI">
+                        <h2>Chat AI</h2>
+                    </div>
+                </a>
+                <a href="{{ url_for('img_gen') }}">
+                    <div class="card" id="imageGenAI">
+                        <h2>Image Generator AI</h2>
+                    </div>
+                </a>
+            </div>
+        </div> 
+        
+        <div class="image-container">
+            <div class="image-topic">
+                <span id="topic-summary">{{ topic }}</span>
+            </div>
+            <div class="image-header">
+                <h1>SlyVision.JPG</h1>
+            </div>
+            <div class="chat-container" id="chat-container"></div>
+            <div class="user-input">
+                <button type ="button" id="speaks-button" onclick="toggleSpeech()">Activate speech</button>
+                <form id="image-generator-form" action="/generate_image" method="POST">
+                    <input type="text" name="prompt" id="input-prompt" placeholder="Type your request" required>
+                    <button type="submit">Generate</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        const speaksButton = document.getElementById("speaks-button");
+
+        function toggleSpeech() {
+            var isSpeaking = speaksButton.dataset.isSpeaking;
+
+            if (isSpeaking === "true") {
+                // Speech is currently on, so turn it off
+                speaksButton.dataset.isSpeaking = "false";
+                speaksButton.innerText = "Turn On Speech";
+                recognition.stop();
+            } else {
+                // Speech is currently off, so turn it on
+                speaksButton.dataset.isSpeaking = "true";
+                speaksButton.innerText = "Turn Off Speech";
+                startSpeechRecognition();
+            }
+        }
+
+        function startSpeechRecognition() {
+            if ('webkitSpeechRecognition' in window) {
+                recognition = new webkitSpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = 'en-US';
+
+                recognition.onstart = function() {
+                    speaksButton.style.background = 'red';
+                };
+
+                recognition.onresult = function(event) {
+                    let finalTranscript = '';
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        if (event.results[i].isFinal) {
+                            finalTranscript += event.results[i][0].transcript;
+                        }
+                    }
+                    inputPrompt.value = finalTranscript;
+                };
+
+                recognition.onend = function() {
+                    speaksButton.style.background = '';
+                };
+
+                recognition.start();
+            } else {
+                alert('Speech recognition not supported in your browser. Please use a supported browser.');
+            }
+        }
+
+        $(document).ready(function() {
+            $("#image-generator-form").submit(function(event){
+                // Prevent the form from submitting via the browser.
+                event.preventDefault();
+                var form = $(this);
+                var prompt = $('#input-prompt').val();  // Get the user's input
+                
+                // Create a new div element for the user's input and append it to the chat container
+                var userInputDiv = $('<div>').text('User: ' + prompt);
+                $('#chat-container').append(userInputDiv);
+
+                $.ajax({
+                    type: "POST",
+                    url: form.attr('action'),
+                    data: form.serialize(),
+                    success: function(data) {
+                        // Create a new div element for the image generator text and append it to the chat container
+                        var imageGeneratorDiv = $('<div>').text('Image Generator: ');
+                        $('#chat-container').append(imageGeneratorDiv);
+
+                        // Create a new img element and set its src attribute to the returned URL
+                        var newImage = $('<img>').attr('src', data.image_url).css('display', 'block');
+                        // Append the new img element to the chat container
+                        $('#chat-container').append(newImage);
+
+                        // Scroll to the bottom of chat-container
+                        $('#chat-container').scrollTop($('#chat-container')[0].scrollHeight);
+                    }
+                });
+            });
+        });
+
+        var modal = document.getElementById("myModal");
+
+        document.getElementById('features-button').onclick = function() {
+            modal.style.display = "block";
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>
