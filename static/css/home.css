@@ -1,0 +1,418 @@
+:root {
+  /* Color scheme */
+  --text-primary: #333;
+  --text-secondary: #666;
+  --text-light: #fff;
+  --background-dark-overlay: rgba(0, 0, 0, 0.5);
+  --btn-auth-login-bg: #00d4ff;
+  --btn-auth-signup-bg: #fff;
+  --btn-auth-signup-border-color: #00d4ff;
+  --feature-btn-active-bg: #00d4ff;
+  --feature-btn-hover-bg: #00bff3;
+
+  /* Layout and spacing */
+  --menu-gap: 20px;
+  --auth-top-desktop: 20px;
+  --auth-top-mobile: 10px;
+  --menu-container-margin-top: -650px;
+  --features-container-margin: 50px auto;
+
+  /* Features menu and content styling */
+  --features-menu-bg: #f9f9f9;
+  --features-menu-border-color: #e1e1e1;
+  --feature-btn-font-size: 16px;
+  --feature-content-margin-bottom: 10px;
+  --feature-content-font-size: 16px;
+
+  /* Responsive design breakpoints */
+  --breakpoint-sm: 576px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 992px;
+  --breakpoint-xl: 1200px;
+
+  /* Dark mode theme colors */
+  --dark-background: #121212;
+  --dark-card-background: #1e1e1e;
+  --dark-border: #333;
+  --dark-text: #b3b3b3;
+
+  /* Shadow */
+  --shadow-soft: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-hard: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  height: 100vh;
+  margin: 0;
+  padding-top: 60px;
+  overflow-x: hidden;
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+body::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: var(--background-dark-overlay);
+  z-index: -1;
+}
+
+.top-left-image {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 100px;
+  height: auto; 
+  z-index: 10; 
+}
+
+.menu-container {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--menu-gap);
+  z-index: 1000;
+  width: 100%;
+  padding: 1rem;
+}
+
+.dropdown-toggle {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text-light);
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  backdrop-filter: blur(5px);
+  transition: all 0.3s ease-in-out;
+}
+
+.dropdown-toggle:hover, .dropdown-toggle:focus {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: var(--btn-auth-login-bg);
+}
+
+.dropdown {
+  position: relative; /* Context for absolute positioning */
+}
+
+.dropdown-menu {
+  display: none; /* Initially hide the dropdown */
+  position: absolute; /* Position it absolutely within the relative parent */
+  top: 2.25rem; /* Adjust top value to the height of the dropdown button */
+  left: 0; /* Align to the left side of the dropdown button */
+  z-index: 1000; /* Ensure it stacks above other content */
+  width: max-content; /* Fit to content width */
+  background: #fff; /* Pure white background */
+  border-radius: 0.5rem; /* Smooth corners */
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23); /* Elegant shadow for depth */
+  margin-top: 2rem; /* Space between the dropdown button and the menu */
+  border: none; /* No border for a cleaner look */
+  padding: 0.5rem 0; /* Vertical padding */
+  animation: slideDown 0.3s ease-in-out forwards; /* Appearing animation */
+}
+
+.dropdown-item {
+  transition: background-color 0.3s, color 0.3s;
+  padding: 0.75rem 1.5rem; /* Generous padding for a spacious feel */
+  font-weight: 500; /* Medium font weight for legibility */
+  color: var(--text-primary); /* Primary text color for consistency */
+}
+
+.dropdown-item:hover, .dropdown-item:focus {
+  background-color: var(--feature-btn-hover-bg); /* Highlight color on hover */
+  color: var(--text-light); /* Contrast text color on hover */
+  border-radius: 0.3rem; /* Rounded corners on hover */
+}
+
+.auth-buttons {
+  position: absolute;
+  top: var(--auth-top-desktop);
+  right: var(--menu-gap);
+  z-index: 2;
+}
+
+.btn-auth {
+  font-size: 0.875rem;
+  padding: 0.5rem 1.5rem;
+  margin-left: var(--menu-gap);
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  border-radius: 0.375rem;
+  border: none;
+}
+
+.btn-login {
+  background-color: var(--btn-auth-login-bg);
+  color: var(--text-light);
+}
+
+.btn-login:hover {
+  background-color: var(--feature-btn-hover-bg);
+}
+
+.btn-signup {
+  background-color: var(--btn-auth-signup-bg);
+  color: var(--btn-auth-login-bg);
+  border: 2px solid var(--btn-auth-signup-border-color);
+}
+
+.btn-signup:hover {
+  background-color: var(--btn-auth-login-bg);
+  color: var(--text-light);
+}
+
+@media (max-width: 768px) {
+  .auth-buttons {
+    top: var(--auth-top-mobile);
+  }
+
+  .btn-auth {
+    font-size: 0.8rem;
+    padding: 0.4rem 1rem;
+  }
+
+  .menu-container {
+    flex-direction: column;
+    padding-top: 10px;
+    margin-top: 20px; /* Add more space at the top if needed */
+  }
+
+  .dropdown {
+    width: 100%; /* Ensure the dropdown is full width */
+    text-align: center; /* Center the dropdown text */
+  }
+
+  .dropdown-menu {
+    width: 90%; /* Reduce width to prevent edge overlap */
+    left: 5%; /* Center dropdown menu */
+    right: 5%; /* Center dropdown menu */
+  }
+
+  .dropdown-toggle {
+    font-size: 0.9rem;
+    padding: 0.5rem; /* Smaller padding for better fit */
+  }
+
+  .top-left-image {
+    width: 50px; /* Smaller size for small screens */
+    top: 10px; /* Adjust position for smaller header */
+    left: 10px;
+  }
+
+  /* Adjustments for main title and subtitles for better readability on mobile */
+  #slyvision-title, #slyvision-subtitle, #slyvision-subtitle2 {
+    font-size: 2em; /* Smaller font size for mobile */
+    margin: 10px 0; /* Reduced margin */
+    padding: 0 20px; /* Padding to avoid text touching the screen edges */
+  }
+
+  #slyvision-subtitle, #slyvision-subtitle2 {
+    color: #fff; /* Change the color for better contrast */
+    text-shadow: 0px 0px 8px rgba(0, 0, 0, 0.8); /* Add text shadow for readability */
+  }
+
+  /* Adjustments for feature buttons and content on mobile */
+  .features-menu {
+    flex-direction: column; /* Stack buttons vertically on smaller screens */
+  }
+
+  .feature-btn {
+    font-size: 0.8rem; /* Smaller font size for feature buttons */
+    padding: 0.5rem; /* Adjust padding for smaller screens */
+  }
+
+  .features-info {
+    padding: 10px; /* Reduced padding for mobile */
+  }
+
+  .feature-content h2 {
+    font-size: 1.8em; /* Smaller heading size on mobile */
+  }
+
+  .feature-content p {
+    font-size: 0.9rem; /* Smaller paragraph font size on mobile */
+  }
+
+  .fab {
+    position: absolute; /* Change to absolute if fixed positioning is causing overlap */
+    bottom: 10%; /* Adjust bottom position */
+    left: 50%; /* Center the button horizontally */
+    transform: translateX(-50%); /* Center the button horizontally */
+    width: 50px; /* Adjust button size */
+    height: 50px; /* Adjust button size */
+    font-size: 1rem; /* Adjust font size within the button */
+  }
+}
+
+@media (max-width: 600px) {
+  .top-left-image {
+      width: 50px; /* Smaller size for small screens */
+  }
+
+  .features-container {
+    margin: 20px; /* Reduced margin for smaller screens */
+  }
+
+  /* Adjust the FAB button for smaller screens */
+  .fab {
+    width: 80px; /* Smaller width */
+    height: 80px; /* Smaller height */
+    font-size: 18px; /* Smaller font size */
+  }
+}
+
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(50px);
+  }
+}
+
+.username-display {
+  color: var(--text-light);
+  font-size: 1rem;
+  line-height: 1.5rem;
+  vertical-align: middle;
+  padding-left: 1rem;
+}
+
+.features-container {
+  width: 100%;
+  max-width: 960px;
+  text-align: center;
+  font-family: 'Poppins', sans-serif;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e1e1e1;
+  border-radius: 8px;
+  overflow: hidden;
+  background: white;
+  z-index: 1;
+  display: none;
+  opacity: 0;
+  transform: translateY(-100px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.features-menu {
+  grid-area: menu;
+  display: flex;
+  justify-content: center;
+  background: var(--features-menu-bg);
+  border-bottom: 1px solid var(--features-menu-border-color);
+}
+
+.feature-btn {
+  flex: 1;
+  padding: 10px 20px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  outline: none;
+  font-size: var(--feature-btn-font-size);
+  font-weight: 600;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.feature-btn:hover, .feature-btn.active {
+  background-color: var(--feature-btn-active-bg);
+  color: var(--text-light);
+}
+
+.features-info {
+  grid-area: info;
+  padding: 20px;
+}
+
+.feature-content {
+  display: none;
+}
+
+.feature-content h2 {
+  font-size: 24px;
+  color: var(--text-primary);
+  margin-bottom: var(--feature-content-margin-bottom);
+}
+
+.feature-content p {
+  font-size: var(--feature-content-font-size);
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+/* Show the first tab by default */
+.feature-content:first-of-type {
+  display: block;
+}
+
+/* Fade in animation */
+.fade-in {
+  display: block !important;
+  animation: fadeInAnimation 0.5s ease-in-out forwards;
+}
+
+@keyframes fadeInAnimation {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Utility classes for accessibility */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.fab {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1050;
+  border-radius: 50%;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.2s, background-color 0.3s;
+  background-color: var(--btn-auth-login-bg);
+  color: var(--text-light);
+}
+
+.fab:hover {
+  transform: scale(1.1);
+  background-color: var(--feature-btn-hover-bg);
+}

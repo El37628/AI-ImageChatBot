@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Container</title>
+    <link rel="stylesheet" href="../static/css/history.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <header>
+        <button class="btn animate__animated animate__fadeIn" id="sidebarToggleBtn">≡</button>
+    </header>
+
+    <nav id="sidebar" class="sidebar animate__animated animate__fadeInLeft">
+        <div id="sidebar-buttons">
+            <button class="btn btn-secondary animate__animated animate__fadeIn" id="new-chat-button">Return to Chat</button>
+            <a href="#" class="btn btn-primary animate__animated animate__fadeIn" id="history-button">History Activity</a>
+            <button class="btn btn-secondary animate__animated animate__fadeIn" id="features-button">Features</button>
+        </div>
+    </nav>
+    <div class="modal fade" id="featuresModal" tabindex="-1" role="dialog" aria-labelledby="featuresModalLabel" aria-hidden="true" data-backdrop="false">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="featuresModalLabel">Features</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true"></span>
+                    </button>
+                </div>
+                <div class="modal-body feature-cards">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <div class="icon-container mb-3">
+                                        <i class="fa fa-comment feature-icon"></i>
+                                    </div>
+                                    <h5 class="card-title" id="h5-chat">Chat AI</h5>
+                                    <p class="card-text">Chat AI can communicate and interact in a human-like manner, providing an engaging user experience.</p>
+                                    <a href="{{ url_for('slyvision') }}" class="btn btn-primary">Learn More</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <div class="icon-container mb-3">
+                                        <i class="fa fa-comment feature-icon"></i>
+                                    </div>
+                                    <h5 class="card-title" id="h5-img">Image Generator AI</h5>
+                                    <p class="card-text" id="h5-img-text">Image Generator AI can create unique and visually appealing images based on user's input.</p>
+                                    <a href="{{ url_for('img_gen') }}" class="btn btn-primary">Learn More</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>                    
+            </div>
+        </div>
+    </div> 
+    <main class="main-content">
+        <section class="top-section">
+            <h1 class="website-title">History Conversation</h1>
+            <div class="search-bar">
+                <i class="fas fa-search" id="search-icon"></i>
+                <input type="text" class="search-input" id="search-input" placeholder="Search..." />
+                <span id="search-results-count"></span>
+            </div>
+        </section>
+
+        <section class="chat-container" id="chat-container">
+            <div class="chat-header"></div>
+            <div class="chat-content"></div>
+        </section>
+    </main>
+
+    <footer>
+        <div id="pagination-container"></div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="../static/js/history.js"></script>
+    <script src="https://kit.fontawesome.com/6feefd233a.js" crossorigin="anonymous"></script>
+</body>
+</html>

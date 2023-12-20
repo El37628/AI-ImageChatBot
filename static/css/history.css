@@ -1,0 +1,296 @@
+/* Enhanced Google Bard Inspired Styles */
+
+:root {
+  --primary-color: #4285F4; /* Google Blue */
+  --secondary-color: #34A853; /* Google Green */
+  --background-color: #FFFFFF; /* White */
+  --header-color: #5F6368; /* Google Gray */
+  --hover-color: #E8F0FE; /* Light blue for hover */
+  --text-color: #1a1a1a; /* Darker text for better contrast */
+  --border-color: #b3b3b3; /* Slightly darker borders */
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  background: var(--background-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 100%; /* Base font-size for rem units */
+}
+
+/* Sidebar Enhancements */
+#sidebar {
+  width: 250px;
+  position: fixed;
+  top: 0;
+  left: -250px;
+  height: 100%;
+  color: var(--text-color);
+  transition: all 0.5s ease;
+  padding-top: 60px;
+  overflow-y: auto;
+  background: linear-gradient(to right, var(--background-color), #f0f0f0);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+#sidebar .btn {
+  color: var(--header-color);
+  background-color: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  margin-top: 1rem;
+  border-radius: 50px;
+  padding: 10px 20px;
+  font-size: 1.6rem;
+}
+
+#sidebar .btn:hover {
+  background-color: var(--hover-color);
+  color: var(--primary-color);
+  transition: color 0.3s ease, background-color 0.3s ease;
+}
+
+.sidebar-open #sidebar {
+  left: 0;
+  animation: none;
+  width: 200px;
+}
+
+#sidebarToggleBtn {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  transition: all 0.3s ease;
+  font-size: 2rem;
+  color: var(--text-color);
+  line-height: 1.8;
+  text-align: center;
+}
+
+#sidebarToggleBtn:hover {
+  background: var(--hover-color);
+  box-shadow: 0px 2px 10px 0px rgba(255, 255, 255, 0.2);
+}
+
+.sidebar-open #sidebarToggleBtn {
+  left: calc(200px + 1rem);
+  transform: rotate(180deg);
+}
+
+/* Main Content and Chat Container Enhancements */
+.main-content {
+  background-color: var(--background-color);
+  border-radius: 0;
+  box-shadow: none;
+  margin: 40px 200px;
+  padding: 20px;
+  width: auto;
+}
+
+.main-content, .chat-container {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+}
+
+.top-section {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 20px;
+  margin-left: 200px;
+}
+
+.website-title {
+  font-size: 1.6rem;
+  font-weight: 500;
+  color: var(--header-color);
+}
+
+.search-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: 30px;
+  padding: 5px 10px;
+  max-width: 500px; 
+  width: 100%;
+  margin-left: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: box-shadow 0.3s ease, width 0.3s ease;
+}
+
+.search-bar:hover {
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.search-input {
+  flex-grow: 1;
+  border: none;
+  outline: none;
+  padding: 8px 12px;
+  font-size: 16px;
+  border-radius: 30px;
+  transition: all 0.2s ease;
+}
+
+#search-icon{
+  margin: 0 10px;
+  transition: margin 0.2s ease;
+}
+
+.search-bar.expanded .search-input {
+  width: 100%; /* Expand input when the search bar is expanded */
+}
+
+.chat-container {
+  background: var(--background-color);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  max-width: 800px;
+  padding: 20px;
+  overflow-y: auto;
+  margin-left: 180px;
+  margin-top: 20px;
+}
+
+.chat-message-container {
+  background: var(--hover-color);
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 15px;
+}
+
+.chat-message-container > div {
+  margin-bottom: 5px;
+}
+
+/* Highlighting for Search Terms */
+.highlight {
+  background-color: var(--secondary-color);
+  color: white;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
+.highlight.current-highlight {
+  background-color: rgb(196, 196, 79); /* Or any other color to indicate focus */
+  color: white;
+}
+
+#pagination-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+#pagination-container button {
+  padding: 5px 10px;
+  margin: 0 5px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+#pagination-container button:hover {
+  background-color: var(--secondary-color);
+}
+
+#pagination-container button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--hover-color);
+}
+
+.large-font {
+  margin-top: 10px; /* Adjust this value as needed */
+}
+
+/* Responsive Design Enhancements */
+@media (max-width: 768px) {
+  #sidebar {
+    width: 200px;
+  }
+
+  .sidebar-open #sidebar {
+    position: fixed;
+    height: 100%;
+    z-index: 1000;
+    left: 0;
+  }
+
+  .sidebar-open .main-content {
+      margin-left: 200px;
+  }
+
+  .sidebar-open #sidebarToggleBtn {
+    left: calc(200px + 1rem); /* Adjust for smaller screens */
+  }
+
+  .search-bar {
+    width: 100%;
+    margin: 10px;
+  }
+
+  .search-input {
+      font-size: 14px; /* Smaller font size for smaller screens */
+  }
+
+  .main-content {
+    margin: 20px 10px;
+    padding: 10px;
+  }
+
+  .chat-container {
+      max-width: 100%;
+  }
+
+  .top-section {
+    flex-direction: column; /* Stack elements vertically on smaller screens */
+    align-items: start; 
+  }
+}
+
+/* Additional Styles for Interactivity */
+button:hover, .btn:hover, button:focus, .btn:focus {
+  filter: brightness(120%);
+  transition: filter 0.2s ease, background-color 0.2s ease;
+}
+
+/* Adjustments for Enhanced User Experience */
+body.sidebar-open {
+  overflow: hidden;
+}
+
+.btn:focus, .search-input:focus, #sidebarToggleBtn:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.sidebar-open #sidebar, .main-content, .chat-container {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.3s ease;
+}
+
+body, .btn, .search-input {
+  font-size: 1rem; /* Standard size, adjust as needed */
+}
+
+.btn, .search-input {
+  padding: 6px 15px; /* Increase padding */
+  margin: 0.5rem; /* Add margin around buttons and inputs */
+}
+
+body:not(.user-is-tabbing) .btn:focus, body:not(.user-is-tabbing) .search-input:focus {
+  outline: none;
+}

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Login | SlyVision</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="../static/css/auth.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <h1 id="title">SlyVision</h1>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-5">
+                <h2>Login</h2>
+                <form id="loginForm" method="post">
+                    <div class="form-group">
+                        <label for="username">Username:</label>
+                        <input type="text" class="form-control" id="username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Login</button>
+                    <div class="form-check">
+                        <label for="keepSignedIn" class="keepSignedInLabel">Keep me signed in</label>
+                        <input type="checkbox" id="keepMeSignedIn" class="keepSignedInInput" name="keepSignedIn">
+                    </div>                                                       
+                    <div class="form-group">
+                        <div class="separator">OR</div>
+                        <div class="socials">
+                            <button type="button" class="btn btn-social btn-google" onclick="event.preventDefault(); location.href='/google-login'">
+                                <img src="{{ url_for('static', filename='src/google.png') }}" alt="Google">
+                                Google
+                            </button>
+                            <button class="btn btn-social btn-discord" onclick="event.preventDefault(); location.href='/discord-login'">
+                                <img src="{{ url_for('static', filename='src/discord.png') }}" alt="Discord">
+                                Discord
+                            </button>                                                       
+                        </div>
+                    </div>                                                        
+                </form>
+            </div>
+        </div>
+    </div>
+    <p class="redirect-text">Haven't have an account yet?</p>
+    <a href="{{ url_for('register_page') }}" class="btn btn-redirect">Register Now</a>
+    <script>
+        $("#loginForm").on("submit", function(event) {
+            event.preventDefault();
+
+            // Get checkbox status
+            var keepMeSignedIn = $('#keepMeSignedIn').is(":checked");
+
+            var dataToSend = $(this).serializeArray();
+            dataToSend.push({ name: "keepMeSignedIn", value: keepMeSignedIn });
+
+            $.ajax({
+                url: "/login",
+                type: "POST",
+                data: $.param(dataToSend),
+                success: function(data) {
+                    if (data.success) {
+                        if (keepMeSignedIn) {
+                            // Store token to localStorage
+                            localStorage.setItem("userToken", data.token);
+                        }
+                        // Use the correct URL generation with blueprint prefix
+                        window.location.href = '/home';
+                    } else {
+                        // Handle login failure
+                        // Display an alert message or update an element on the login page
+                        alert('Invalid username or password');
+                    }
+                },
+                error: function() {
+                    // Handle AJAX error
+                    alert('An error occurred during login');
+                }
+            });
+        });
+
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", $('meta[name=csrf-token]').attr('content'))
+                }
+            }
+        }); 
+    </script>    
+</body>
+</html>

@@ -1,131 +1,88 @@
-# Importing additional required modules
-import datetime
-import queue
-import re
-import sys
-import os
-from base64 import b64decode
-from google.cloud import speech
-import pyaudio
 import openai
-from openai.error import InvalidRequestError
-from flask import Flask, render_template, request, jsonify
+from flask import Blueprint, render_template, request, jsonify, Response
+import logging
+import os
+import requests
+import base64
+from db import upload_to_gcs, store_generated_image, conversations, fetch_generated_images, fetch_image_container_ids
+import string
+import random
+import json
 
-app = Flask(__name__)
-openai.api_key = "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"
+logging.basicConfig(filename='debug.log', level=logging.DEBUG)
 
-# Audio recording parameters
-RATE = 16000
-CHUNK = int(RATE / 10)  # 100ms
+img = Blueprint('img', __name__)
+openai.api_key = "YOUR_OPENAI_API_KEY"
 
-class MicrophoneStream:
-    """Opens a recording stream as a generator yielding the audio chunks."""
-
-    def __init__(self, rate, chunk):
-        self._rate = rate
-        self._chunk = chunk
-        self._buff = queue.Queue()
-        self.closed = True
-
-    def __enter__(self):
-        self._audio_interface = pyaudio.PyAudio()
-        self._audio_stream = self._audio_interface.open(
-            format=pyaudio.paInt16,
-            channels=1,
-            rate=self._rate,
-            input=True,
-            frames_per_buffer=self._chunk,
-            stream_callback=self._fill_buffer,
-        )
-
-        self.closed = False
-        return self
-
-    def __exit__(self, type, value, traceback):
-        self._audio_stream.stop_stream()
-        self._audio_stream.close()
-        self.closed = True
-        self._buff.put(None)
-        self._audio_interface.terminate()
-
-    def _fill_buffer(self, in_data, frame_count, time_info, status_flags):
-        self._buff.put(in_data)
-        return None, pyaudio.paContinue
-
-    def generator(self):
-        while not self.closed:
-            chunk = self._buff.get()
-            if chunk is None:
-                return
-            data = [chunk]
-
-            while True:
-                try:
-                    chunk = self._buff.get(block=False)
-                    if chunk is None:
-                        return
-                    data.append(chunk)
-                except queue.Empty:
-                    break
-            yield b"".join(data)
-
-def listen_print_loop(responses):
-    num_chars_printed = 0
-
-    for response in responses:
-        if not response.results:
-            continue
-
-        result = response.results[0]
-        if not result.alternatives:
-            continue
-
-        transcript = result.alternatives[0].transcript
-        overwrite_chars = " " * (num_chars_printed - len(transcript))
-
-        if not result.is_final:
-            sys.stdout.write(transcript + overwrite_chars + "\r")
-            sys.stdout.flush()
-
-            num_chars_printed = len(transcript)
-        else:
-            print(transcript + overwrite_chars)
-            if re.search(r"\b(exit|quit)\b", transcript, re.I):
-                print("Exiting...")
-                break
-
-            num_chars_printed = 0
-
-
-
-@app.route('/')
+@img.route('/')
 def img_gen():
     return render_template('img_gen.html')
 
-@app.route('/slyvision')
-def slyvision():
-    return render_template('index.html')
+def generate_unique_filename(user_id, counter):
+    while True:
+        filename = f"image_{user_id}_{counter}.png"
+        filepath = os.path.join("static", "images", filename)
+        if not os.path.exists(filepath):
+            return filename, filepath
 
-@app.route('/generate_image', methods=['POST'])
+
+@img.route('/generate_image', methods=['POST'])
 def generate_image_route():
-    prompt = request.form['prompt']
-    num_image = int(request.form.get('num_image', 1))  # get number of images to generate, default is 1
-    size = request.form.get('size', '256x256')  # get the size of images to generate, default is '256x256'
-    
-    response = generate_image(prompt, num_image, size)
-    
-    if response.get('images'):  # check if there's any image generated
-        image_url = response['images'][0]  # get the url of the first image
-    else:
-        image_url = ''  # or return a default image or error message
-    
-    return jsonify({'image_url': image_url})
+    data = request.get_json()
+    prompt = data['prompt']
+    num_image = int(data.get('num_image', 1))
+    size = data.get('size', '256x256')
+
+    user_id = data.get('user_id')
+    container_id = data.get('container_id')
+    conversation_id = data.get('conversation_id')
+
+    image_urls = generate_image(prompt, num_image, size)
+    print("Generated image URLs:", image_urls)
+
+    base64_images = []  # List to hold base64 encoded images
+    public_image_urls = [] # List to hold the public URLs of the images
+
+    counter = 1
+    for image_url in image_urls:
+        print("Image URLs:", image_urls)
+        filename, filepath = generate_unique_filename(user_id, counter)  # Unpack the tuple here
+
+        response = requests.get(image_url)
+        print(f"Downloading image {image_url}...")
+
+        with open(filepath, "wb") as f:
+            f.write(response.content)
+            print(f"Downloaded {len(response.content)} bytes.")
+
+        print(f"Saving to file {filepath}...")
+        print("Response status code:", response.status_code)
+
+        # Read the file and convert to base64
+        with open(filepath, "rb") as f:
+            base64_image = base64.b64encode(f.read()).decode('utf-8')
+            base64_images.append(base64_image)
+
+        # Upload to Google Cloud Storage and get the public URL
+        public_url = upload_to_gcs(user_id, filename, filepath)
+        public_image_urls.append(public_url)
+        counter += 1
+
+    # Store the generated image URL in Firebase Realtime Database
+    for image_url in public_image_urls:
+        if conversation_id and container_id and image_url:
+            store_generated_image(container_id, conversation_id, image_url, prompt, user_id)
+            new_conversation_id = get_new_conversation_id()
+            conversation_id = new_conversation_id
+
+    return jsonify({'image_url': base64_images})  # Return the base64 encoded images
 
 
 def generate_image(prompt, num_image=1, size='256x256', output_format='url'):
     try:
         images = []
         response = openai.Image.create(
+            model='dall-e-2',
             prompt=prompt,
             n=num_image,
             size=size,
@@ -133,34 +90,136 @@ def generate_image(prompt, num_image=1, size='256x256', output_format='url'):
         )
         if output_format == 'url':
             for image in response['data']:
-                images.append(image.url)
+                images.append(image['url'])
         elif output_format == 'b64_json':
             for image in response['data']:
-                images.append(image.b64_json)
-        return {'created': datetime.datetime.fromtimestamp(response['created']), 'images': images}
-    except InvalidRequestError as e:
+                images.append(image['b64_json'])
+        return images
+    except Exception as e:
         print(e)
 
-def main():
-    language_code = "en-US"
-    client = speech.SpeechClient.from_service_account_json('key.json')
-    config = speech.RecognitionConfig(
-        encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
-        sample_rate_hertz=RATE,
-        language_code=language_code,
-    )
-    streaming_config = speech.StreamingRecognitionConfig(
-        config=config, interim_results=True
-    )
 
-    with MicrophoneStream(RATE, CHUNK) as stream:
-        audio_generator = stream.generator()
-        requests = (
-            speech.StreamingRecognizeRequest(audio_content=content)
-            for content in audio_generator
-        )
+def get_new_conversation_id():
+    letters_and_digits = string.ascii_letters + string.digits
+    conversation_id = ''.join(random.choices(letters_and_digits, k=10))
+    return conversation_id
 
-        responses = client.streaming_recognize(streaming_config, requests)
 
-        # Now, put the transcription responses to use.
-        listen_print_loop(responses)
+def get_new_container_id():
+    # This function generates a random string of 10 alphanumeric characters
+    letters_and_digits = string.ascii_letters + string.digits
+    container_id = ''.join(random.choices(letters_and_digits, k=10))
+    return container_id
+
+@img.route('/start_new_conversation', methods=['POST'])
+def start_new_conversation():
+    try:
+        data = request.get_data(as_text=True)
+        print(f"Received data: {data}")
+        # Parse the JSON data manually
+        data = json.loads(data)
+
+        prompt = 'new_conversation'
+        conversation_id = data.get('conversation_id')
+        container_id = data.get('container_id')
+
+        if prompt == 'new_conversation' and conversation_id is None:
+            # If no conversation_id was provided, generate a new one
+            if conversation_id is None:
+                conversation_id = get_new_conversation_id()
+
+            # If no container_id was provided, generate a new one
+            if container_id is None:
+                container_id = get_new_container_id()
+
+            # Log the generated conversation_id and container_id
+            logging.debug(f'Generated conversation_id: {conversation_id}')
+            logging.debug(f'Generated container_id: {container_id}')
+
+            # Initialize the new conversation in the specified container
+            if container_id not in conversations:
+                conversations[container_id] = {}
+            conversations[container_id][conversation_id] = []
+
+            store_generated_image(container_id, conversation_id, None, None, None)
+
+            # Log the response data
+            response_data = {
+                'conversation_id': conversation_id,
+                'container_id': container_id,
+            }
+            logging.debug(f'Response data: {response_data}')
+
+            # Return the new IDs in the response
+            return jsonify(response_data)
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@img.route('/new_image', methods=['POST'])
+def new_chat():
+    # Generate a new container ID
+    container_id = get_new_container_id()
+
+    # Generate a new conversation ID
+    conversation_id = get_new_conversation_id()
+
+    # Initialize a new conversation
+    conversation = []
+
+
+    # Add the new conversation to the conversations dictionary
+    if container_id not in conversations:
+        conversations[container_id] = {}
+    conversations[container_id][conversation_id] = conversation
+
+    # Return the container ID and conversation ID in the response
+    return jsonify({'container_id': container_id, 'conversation_id': conversation_id})
+
+@img.route('/images', methods=['GET'])
+def get_generated_image():
+    user_id = request.args.get('user_id')
+    container_id = request.args.get('container_id')
+    conversation_id = request.args.get('conversation_id')
+
+    print(f"user_id: {user_id}, container_id: {container_id}, conversation_id: {conversation_id}")
+
+    if not container_id or not conversation_id or not user_id:
+        return jsonify({'error': 'Invalid request'}), 400
+    
+    messages = fetch_generated_images(user_id, container_id, conversation_id)
+    print(f"messages: {messages}")
+    return jsonify(messages)
+
+@img.route('/get_img_ids', methods=['GET'])
+def get_img_ids():
+    user_id = request.args.get('user_id')
+    ids = fetch_image_container_ids(user_id)
+
+    if ids:
+        return jsonify(ids)
+    else:
+        return jsonify({'error': 'No data found for the latest conversation'}), 404
+    
+@img.route('/download_image', methods=['GET'])
+def download_image():
+    image_url = request.args.get('image_url')
+    
+    if not image_url:
+        return jsonify({'error': 'No image URL provided'}), 400
+
+    response = requests.get(image_url, stream=True)
+
+    if response.status_code != 200:
+        return jsonify({'error': 'Image not found'}), 404
+
+    # Get the filename from the URL
+    filename = image_url.split('/')[-1]
+
+    # Set the headers to force download
+    headers = {
+        'Content-Disposition': f'attachment; filename={filename}',
+        'Content-Type': response.headers.get('Content-Type', 'application/octet-stream')
+    }
+
+    return Response(response.content, headers=headers)

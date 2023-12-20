@@ -1,455 +1,207 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>SlyVision</title>
-    <link rel="stylesheet" href="../static/css/style.css">
-    <link rel="icon" href="data:,">
-</head>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="SlyVision: AI-powered vision and speech interaction platform">
+        <meta name="keywords" content="SlyVision, AI, Chatbot, Image Generation, Speech Recognition">
+        <meta name="author" content="SlyVision">
+        <title>SlyVision</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+        <link rel="stylesheet" href="../static/css/style.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css"/>
+        <link rel="icon" href="data:,">
+        <script src="{{ url_for('static', filename='js/index.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/logout.js') }}"></script>
+    </head>
 <body>
-    <div class="container">
-        <div class="sidebar">
-            <div class="menu-section" id="menu-section" style="display: flex;">
-                <a href="#" class="box-border-button" id="new-chat-button">New Chat</a>
-                <span class="history-label" onclick="toggleChatHistory()">
-                    History
-                    <div id="previous-conversations"></div>
-                    <div id="chat-history" style="display: none;"></div>
-                </span>
-                <a href="#" class="box-border-button" id="features-button">Features</a>
+    <div class="container-fluid h-100 d-flex flex-column">
+        <button class="btn animate__animated animate__fadeIn" id="sidebarToggleBtn">≡</button>
+        <div id="sidebar" class="sidebar animate__animated animate__fadeInLeft">
+            <div id="sidebar-buttons">
+                <button class="btn btn-secondary animate__animated animate__fadeIn" id="new-chat-button">New Chat</button>
+                <a href="/history" class="btn btn-primary animate__animated animate__fadeIn" id="history-button">History Activity</a>
+                <button class="btn btn-secondary animate__animated animate__fadeIn" id="features-button">Features</button>
+            </div>
+            <div class="profile-actions">
+                <div class="profile">
+                    <button class="profile-button" id="options-toggle">
+                        <div class="profile-info">
+                            <div class="profile-name"></div>
+                        </div>
+                        <i class="fas fa-ellipsis-h profile-icon"></i>
+                    </button>
+                    <div class="actions animate__animated animate__fadeInUp" id="actions">
+                        <a href="#" class="action-link" id="feedback" data-toggle="modal" data-target="#feedbackModal">Feedback</a>
+                        <a href="#" class="action-link" id="settings">Settings</a>
+                        <a href="#" class="action-link" id="logout">Logout</a>
+                    </div>
+                </div>
             </div>
         </div>
-        
-        <!-- The Modal -->
-        <div id="myModal" class="modal">
-            <div class="modal-content">
-                <a href="{{ url_for('slyvision') }}">
-                    <div class="card" id="chatAI">
-                        <h2>Chat AI</h2>
+        <div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="settingsModalLabel" aria-hidden="true" data-backdrop="false">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="settingsModalLabel">Settings</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                     </div>
-                </a>
-                <a href="{{ url_for('img_gen') }}">
-                    <div class="card" id="imageGenAI">
-                        <h2>Image Generator AI</h2>
+                    <div class="modal-body d-flex">
+                        <!-- Vertical button section -->
+                        <div class="settings-navigation">
+                            <button class="settings-nav-btn active" id="themeSettingsButton">Theme Select</button>
+                            <button class="settings-nav-btn" id="imageSettingsButton">Image Select</button>
+                        </div>
+                        <!-- Content -->
+                        <div class="settings-content">
+                            <!-- Theme Select -->
+                            <div class="settings-section" id="themeSection">
+                                <label for="themeSelect" style="font-weight: bold; color:black; font-size: 20px;">Select Theme:</label>
+                                <select class="form-control" id="themeSelect">
+                                    <option value="lavender">Lavender</option>
+                                    <option value="green">Green</option>
+                                    <option value="blue">Blue</option>
+                                    <option value="purple">Purple</option>
+                                    <option value="red">Red</option>
+                                </select>
+                            </div>
+                            <!-- Image Select -->
+                            <div class="settings-section" id="imageSection" style="display: none;">
+                                <label for="imageSelect" style="font-weight: bold; color:black; font-size: 20px;">Select Chat Container Image:</label>
+                                <select class="form-control" id="imageSelect">
+                                    <!-- Options for images -->
+                                    <option value="none">None</option>
+                                    <option value="image1">Image 1</option>
+                                    <option value="image2">Image 2</option>
+                                    <option value="image3">Image 3</option>
+                                    <!-- Add more options as needed -->
+                                </select>
+                            </div>
+                        </div>
                     </div>
-                </a>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" id="saveSettings">Save</button>
+                    </div>
+                </div>
             </div>
-        </div>               
-        <div class="chat-container">
-            <div class="chat-topic">
-                <span id="topic-summary">{{ topic }}</span>
+        </div>
+        <div class="modal fade" id="feedbackModal" tabindex="-1" role="dialog" aria-labelledby="feedbackModalLabel" aria-hidden="true" data-backdrop="false">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="feedbackModalLabel">Feedbacks</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form id="feedbackForm">
+                        <div class="modal-body">
+                            <div class="form-group row">
+                                <label for="username" class="col-sm-3 col-form-label" style="color: black;">Username:</label>
+                                <div class="col-sm-10">
+                                    <input type="text" id="username" name="username" class="form-control" readonly />
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="feedback" class="col-sm-3 col-form-label" style="color: black;">Comments:</label>
+                                <div class="col-sm-10">
+                                    <textarea class="form-control" id="feedback" name="feedback"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary" id="submitFeedback">Submit</button>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div class="chat-header">
-                <h1>SlyVision</h1>
+        </div>                                                             
+        <div class="modal fade" id="featuresModal" tabindex="-1" role="dialog" aria-labelledby="featuresModalLabel" aria-hidden="true" data-backdrop="false">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="featuresModalLabel">Features</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body feature-cards">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <div class="icon-container mb-3">
+                                            <i class="fa fa-comment feature-icon"></i>
+                                        </div>
+                                        <h5 class="card-title" id="h5-chat">Chat AI</h5>
+                                        <p class="card-text">Chat AI can communicate and interact in a human-like manner, providing an engaging user experience.</p>
+                                        <a href="{{ url_for('slyvision') }}" class="btn btn-primary">Learn More about Chat AI</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <div class="icon-container mb-3">
+                                            <i class="fa fa-comment feature-icon"></i>
+                                        </div>
+                                        <h5 class="card-title" id="h5-img">Image Generator AI</h5>
+                                        <p class="card-text" id="h5-img-text">Image Generator AI can create unique and visually appealing images based on user's input.</p>
+                                        <a href="{{ url_for('img_gen') }}" class="btn btn-primary">Learn More about Image-Gen</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>                    
+                </div>
             </div>
-            <div class="chat-content" id="chat-container"></div>
+        </div>                  
+        <div id="content" class="content flex-grow-1 p-3 animate__animated animate__fadeInRight">
+            <div class="chat-container bg-light animate__animated animate__fadeInUp" id="chat-border">
+                <div class="chat-header" id="chat-header">
+                    <h1>SlyVision</h1>
+                </div>
+                <div class="chat-content" id="chat-container"></div>
+            </div>
             <div class="user-input">
-                <form id="chat-form" onsubmit="event.preventDefault(); chat();">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="button" id="speaks-button" onclick="toggleSpeech()">Activate speech</button>
-                    <input type="text" name="prompt" id="input-prompt" placeholder="Type your message" required>
-                    <button type="button" id="send-button" onclick="submitForm()">Send</button>
+                <form id="chat-form">
+                    <button type="button" id="speaks-button">Activate speech</button>
+                    <div class="textarea-container">
+                        <textarea name="prompt" id="input-prompt" placeholder="Type your message" required></textarea>  
+                        <div class="center" id="waving">
+                            <div class="wave"></div>
+                            <div class="wave"></div>
+                            <div class="wave"></div>
+                            <div class="wave"></div>
+                            <div class="wave"></div>
+                            <div class="wave"></div>
+                            <div class="wave"></div>
+                            <div class="wave"></div>
+                            <div class="wave"></div>
+                            <div class="wave"></div>
+                            <span class="loading">Loading..</span>
+                        </div>   
+                    </div>                               
+                    <button type="submit" id="send-button">Send</button>
                 </form>
             </div>
-        </div>
-    </div>
-
-    <script>
-        const speaksButton = document.getElementById("speaks-button");
-        const inputPrompt = document.getElementById("input-prompt");
-        const previousConversationsContainer = document.getElementById("previous-conversations");
-        let recognition;
-        let selectedConversation;
-        var currentConversationId;
-        var previousConversations = [];
-        var conversation = [];
-        var isChatHistoryFetched = false;
-    
-        function toggleSpeech() {
-            var isSpeaking = speaksButton.dataset.isSpeaking;
-    
-            if (isSpeaking === "true") {
-                // Speech is currently on, so turn it off
-                speaksButton.dataset.isSpeaking = "false";
-                speaksButton.innerText = "Turn On Speech";
-                recognition.stop();
-            } else {
-                // Speech is currently off, so turn it on
-                speaksButton.dataset.isSpeaking = "true";
-                speaksButton.innerText = "Turn Off Speech";
-                startSpeechRecognition();
-            }
-        }
-
-        function submitForm() {
-            document.getElementById("chat-form").submit();
-        }
-    
-        function toggleChatHistory() {
-            var chatHistoryContainer = document.getElementById("chat-history");
-            chatHistoryContainer.style.display = (chatHistoryContainer.style.display === 'none') ? 'block' : 'none';
-        }
-    
-        function startSpeechRecognition() {
-            if ('webkitSpeechRecognition' in window) {
-                recognition = new webkitSpeechRecognition();
-                recognition.continuous = true;
-                recognition.interimResults = true;
-                recognition.lang = 'en-US';
-    
-                recognition.onstart = function() {
-                    speaksButton.style.background = 'red';
-                };
-    
-                recognition.onresult = function(event) {
-                    let finalTranscript = '';
-                    for (let i = event.resultIndex; i < event.results.length; ++i) {
-                        if (event.results[i].isFinal) {
-                            finalTranscript += event.results[i][0].transcript;
-                        }
-                    }
-                    inputPrompt.value = finalTranscript;
-                };
-    
-                recognition.onend = function() {
-                    speaksButton.style.background = '';
-                };
-    
-                recognition.start();
-            } else {
-                alert('Speech recognition not supported in your browser. Please use a supported browser.');
-            }
-        }
-    
-        function chat() {
-            var promptInput = document.getElementById("input-prompt").value;
-            var xhr = new XMLHttpRequest();
-            xhr.open("POST", "/chat", true);
-            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-
-            // Get the CSRF token
-            var csrfTokenInput = document.querySelector('input[name="csrf_token"]');
-            var csrfToken = csrfTokenInput.value;
-
-            // Create the request body with the CSRF token
-            var requestBody = "prompt=" + encodeURIComponent(promptInput) +
-                "&conversation_id=" + encodeURIComponent(currentConversationId) +
-                "&csrf_token=" + encodeURIComponent(csrfToken);
-
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
-                    // Parse the JSON response
-                    var responseData = JSON.parse(xhr.responseText);
-                    var topic = responseData.topic;
-
-                    // Update the conversation ID
-                    if (responseData.conversation_id) {
-                        currentConversationId = responseData.conversation_id;
-                    }
-
-                    // Update the chat topic
-                    updateTopicSummary(topic);
-
-                    // Fetch updated chat data
-                    fetchChatData();
-                }
-            };
-
-            xhr.send(requestBody);
-        }
-    
-        function updateTopicSummary(text) {
-            var topicSummary = document.getElementById("topic-summary");
-            topicSummary.textContent = text;
-        }
-    
-        function startNewChat() {
-            // Store the current conversation
-            var currentConversation = {
-                conversation_id: currentConversationId,
-                chat_topic: document.getElementById("topic-summary").textContent
-            };
-
-            // Add the current conversation to the list of previous conversations
-            previousConversations.push(currentConversation);
-
-            // Display the updated list of previous conversations
-            displayPreviousConversations(previousConversations);
-
-            // Clear the chat container
-            var chatContainer = document.getElementById("chat-container");
-            chatContainer.innerHTML = "";
-
-            // Clear the topic summary
-            var topicSummary = document.getElementById("topic-summary");
-            topicSummary.textContent = "";
-
-            // Clear the user input field
-            var inputPrompt = document.getElementById("input-prompt");
-            inputPrompt.value = "";
-
-            // Start a new conversation and reset the current conversation ID
-            var xhr = new XMLHttpRequest();
-            xhr.open("GET", "/start_new_conversation", true);
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
-                    var responseData = JSON.parse(xhr.responseText);
-                    console.log(xhr.responseText);
-                    if(responseData.conversation_id) {
-                        currentConversationId = responseData.conversation_id;
-
-                        // Store the new conversation ID in the local storage
-                        localStorage.setItem('conversation_id', currentConversationId);
-
-                    } else {
-                        console.error("Response does not contain conversation_id:", responseData);
-                    }
-                } else {
-                    console.error("Failed to get a response from the server:", xhr.status, xhr.statusText);
-                }
-            };
-            xhr.onerror = function (e) {
-                console.error("Failed to send a request to the server:", e);
-            };
-            xhr.send();
-        }
-
-        window.addEventListener("DOMContentLoaded", function () {
-            var currentConversationId = null;
-            // Fetch the conversation ID from the local storage
-            currentConversationId = localStorage.getItem('conversation_id');
-
-            if (currentConversationId === null) {
-                // No conversation ID found, start a new chat
-                console.log("First conversation object:", conversation[0]);
-                startNewChat();  // Pass the first conversation object
-            } else {
-                // Found a conversation ID
-                if (!isChatHistoryFetched) {
-                    fetchChatHistory(currentConversationId)
-                        .then(function (chatHistory) {
-                            displayChatHistory(chatHistory);
-                            updateTopicSummary(chatHistory.chat_topic);
-                            console.log("Last chat message object:", chatHistory.chat_messages[chatHistory.chat_messages.length - 1]);
-                            // Set isChatHistoryFetched here, after a successful fetch.
-                            isChatHistoryFetched = true;
-                        })
-                        .catch(function (error) {
-                            console.error("Failed to fetch chat history:", error);
-                        });
-                }
-
-            }
-
-            // Fetch chat data
-            fetchChatData();
-        });
-
-    
-        // Automatically scroll to the latest message
-        var chatContainer = document.getElementById("chat-container");
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-    
-        function typeMessage(message, container) {
-            container.textContent = "";
             
-            var text = Array.isArray(message) ? message.join("") : message;
-            var i = 0;
-
-            var interval = setInterval(function() {
-                if (i < text.length) {
-                    container.textContent += text.charAt(i);
-                    i++;
-                } else {
-                    clearInterval(interval);
-                }
-            }, 50);  // Adjust typing speed here (smaller numbers = faster typing)
-        }
-
-    
-        function fetchChatData() {
-            var xhr = new XMLHttpRequest();
-            xhr.open("GET", "/get_chat_data?conversation_id=" + encodeURIComponent(currentConversationId), true);
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState === XMLHttpRequest.DONE) {
-                    if (xhr.status === 200) {
-                        var responseData = JSON.parse(xhr.responseText);
-                        var chatData = responseData.conversation || [];
-
-                        // Pass the conversation history to the displayChatHistory() function
-                        displayChatHistory(chatData);
-                    } else {
-                        console.error("Failed to fetch chat data:", xhr.status, xhr.statusText);
-                    }
-                }
-            };
-            xhr.onerror = function () {
-                console.error("Failed to send a request to the server.");
-            };
-            xhr.send();
-        }
-
-
-
-    
-        function createMessageElement(message, isLastMessage) {
-            var messageElement = document.createElement("div");
-            messageElement.classList.add("message");
-    
-            // Add role-specific classes
-            if (message.role === 'system') {
-                messageElement.classList.add("system-message");
-            } else if (message.role === 'user') {
-                messageElement.classList.add("user-message");
-            } else if (message.role === 'assistant') {
-                messageElement.classList.add("assistant-message");
-            }
-    
-            var contentSpan = document.createElement("span");
-            contentSpan.classList.add("content");
-    
-            // Include the role when displaying the message
-            var prefixedContent = "";
-            if (message.role) {
-                prefixedContent = message.role.charAt(0).toUpperCase() + message.role.slice(1) + ": ";
-            }
-    
-            if (message.content) {
-                prefixedContent += message.content;
-            } else if (message.message && message.message.content) {
-                prefixedContent += message.message.content;
-            }
-    
-            contentSpan.textContent = prefixedContent;
-    
-            messageElement.appendChild(contentSpan);
-    
-            // Add speaker button for bot response
-            if (message.role === 'assistant' && isLastMessage) {
-                var speakerButton = document.createElement("button");
-                speakerButton.textContent = "Speak";
-                speakerButton.classList.add("speak-btn");
-                speakerButton.addEventListener("click", function () {
-                    var audioElement = document.createElement('audio');
-                    playSpeech(prefixedContent, audioElement);
-                });
-                messageElement.appendChild(speakerButton);
-            }
-    
-            return messageElement;
-        }
-
-
-        function fetchChatHistory(conversationId) {
-            return new Promise(function (resolve, reject) {
-                if (!conversationId) {
-                    resolve({ chat_messages: [], chat_topic: '' });
-                    return;
-                }
-
-                var xhr = new XMLHttpRequest();
-                xhr.open("GET", "/get_chat_history?conversation_id=" + encodeURIComponent(conversationId), true);
-                xhr.onreadystatechange = function () {
-                    if (xhr.readyState === XMLHttpRequest.DONE) {
-                        if (xhr.status === 200) {
-                            var responseData = JSON.parse(xhr.responseText);
-                            var chatHistory = responseData.chat_messages || [];
-                            var chatTopic = responseData.chat_topic || '';
-                            // Do not set isChatHistoryFetched here. It should be set after a successful fetch.
-                            resolve({ chat_messages: chatHistory, chat_topic: chatTopic });
-                        } else if (xhr.status === 404 && responseData.message === "No chat history found for the provided conversation ID.") {
-                            resolve({ chat_messages: [], chat_topic: '' });
-                        } else {
-                            reject(new Error("Failed to fetch chat history: " + xhr.status + " " + xhr.statusText));
-                        }
-                    }
-                };
-                xhr.onerror = function () {
-                    reject(new Error("Failed to send a request to the server."));
-                };
-                xhr.send();
-            });
-        }
-
-
-    
-        function displayChatHistory(history) {
-            var chatContainer = document.getElementById("chat-container");
-            var isAtBottom = chatContainer.scrollHeight - chatContainer.scrollTop <= chatContainer.clientHeight;
-
-            // Store the current scroll position
-            var scrollOffset = chatContainer.scrollHeight - chatContainer.scrollTop;
-
-            // Clear the chat container
-            chatContainer.innerHTML = "";
-
-            for (var i = 0; i < history.length; i++) {
-                var message = history[i];
-                var isLastMessage = i === history.length - 1;
-
-                // Skip messages with empty content
-                if (!message.content) {
-                    continue;
-                }
-
-                var messageElement = createMessageElement(message, isLastMessage);
-                chatContainer.appendChild(messageElement);
-            }
-
-            // Restore the scroll position
-            if (isAtBottom) {
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-            } else {
-                chatContainer.scrollTop = chatContainer.scrollHeight - scrollOffset;
-            }
-        }
-
-
-
-        function displayPreviousConversations(conversations) {
-            var previousConversationsContainer = document.getElementById("previous-conversations");
-            previousConversationsContainer.innerHTML = "";
-
-            for (var i = 0; i < conversations.length; i++) {
-                var conversationElement = document.createElement("button");
-                conversationElement.textContent = conversations[i].chat_topic;  // Use 'chat_topic' instead of 'chat_history'
-                conversationElement.classList.add("previous-conversation-item");
-
-                // Save conversation details into the closure
-                (function (conversation) {
-                    conversationElement.addEventListener("click", function () {
-                        // Set isChatHistoryFetched to false when a new conversation is selected
-                        isChatHistoryFetched = false;
-                        // Fetch chat history for the selected conversation
-                        fetchChatHistory(conversation.conversation_id)
-                            .then(function (result) {
-                                // Update the chat container with the fetched chat history
-                                displayChatHistory(result.chat_messages);
-                                // Update the chat topic
-                                updateTopicSummary(conversation.chat_topic);
-                                // Set isChatHistoryFetched to true after a successful fetch
-                                isChatHistoryFetched = true;
-                            })
-                            .catch(function (error) {
-                                console.error("Failed to fetch chat history:", error);
-                            });
-                    });
-                })(conversations[i]);
-
-                previousConversationsContainer.appendChild(conversationElement);
-            }
-        }
-
-
-
-
-
-    
-        var newChatButton = document.getElementById("new-chat-button");
-        newChatButton.addEventListener("click", function () {
-                startNewChat();
-        });
-        
-    </script>    
+        </div>
+    </div>    
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r121/three.min.js"></script>
+    <script src="https://www.vantajs.com/dist/vanta.waves.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="https://code.responsivevoice.org/responsivevoice.js?key=rZBxXEK9"></script>
 </body>
 </html>

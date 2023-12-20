@@ -1,11 +1,15 @@
-#pip install -r requirements.txt (powershell command)
-
-google-cloud-speech
-azure.cognitiveservices.speech
-pyaudio
+Flask
 openai
-flask
-flask_wtf
-sqlalchemy
-spacy
-psycopg2
+flask-wtf
+Flask-Login
+itsdangerous
+concurrent.futures
+requests
+requests-oauthlib
+firebase-admin
+google-cloud-storage
+google-auth
+google-auth-oauthlib
+werkzeug
+authlib
+logging
